@@ -4,14 +4,16 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QMainWindow,
+    QMenu,
+    QMessageBox,
     QPushButton,
     QSizePolicy,
+    QToolButton,
     QVBoxLayout,
     QWidget,
 )
 
 from app.core.user_config import UserConfig
-
 
 class MainWindow(QMainWindow):
     def __init__(
@@ -52,32 +54,169 @@ class MainWindow(QMainWindow):
         header.setObjectName("headerCard")
 
         layout = QHBoxLayout(header)
-        layout.setContentsMargins(24, 18, 24, 18)
+        layout.setContentsMargins(24, 14, 20, 14)
         layout.setSpacing(16)
 
+        # Marca
         brand_layout = QVBoxLayout()
-        brand_layout.setSpacing(3)
+        brand_layout.setSpacing(1)
 
         app_name = QLabel("UserConfig")
         app_name.setObjectName("appName")
 
-        subtitle = QLabel(
-            "Preferencias y configuración local"
-        )
+        subtitle = QLabel("Configuración de usuario")
         subtitle.setObjectName("appSubtitle")
 
         brand_layout.addWidget(app_name)
         brand_layout.addWidget(subtitle)
 
+        layout.addLayout(brand_layout)
+        layout.addStretch()
+
+        # Contenedor de navegación
+        navigation = QFrame()
+        navigation.setObjectName("navigationBar")
+
+        nav_layout = QHBoxLayout(navigation)
+        nav_layout.setContentsMargins(5, 5, 5, 5)
+        nav_layout.setSpacing(2)
+
+        # Archivo
+        file_menu = QMenu(self)
+
+        action_new = file_menu.addAction("Nuevo")
+        action_open = file_menu.addAction("Abrir")
+        file_menu.addSeparator()
+        action_exit = file_menu.addAction("Salir")
+
+        action_new.triggered.connect(
+            lambda: self._show_simulated_action("Nuevo")
+        )
+        action_open.triggered.connect(
+            lambda: self._show_simulated_action("Abrir")
+        )
+        action_exit.triggered.connect(self.close)
+
+        file_button = self._create_menu_button(
+            "Archivo",
+            file_menu,
+        )
+
+        # Edición
+        edit_menu = QMenu(self)
+
+        action_undo = edit_menu.addAction("Deshacer")
+        action_copy = edit_menu.addAction("Copiar")
+        action_paste = edit_menu.addAction("Pegar")
+
+        action_undo.triggered.connect(
+            lambda: self._show_simulated_action("Deshacer")
+        )
+        action_copy.triggered.connect(
+            lambda: self._show_simulated_action("Copiar")
+        )
+        action_paste.triggered.connect(
+            lambda: self._show_simulated_action("Pegar")
+        )
+
+        edit_button = self._create_menu_button(
+            "Edición",
+            edit_menu,
+        )
+
+        # Ver
+        view_menu = QMenu(self)
+
+        action_refresh = view_menu.addAction("Actualizar vista")
+        action_info = view_menu.addAction("Información de interfaz")
+
+        action_refresh.triggered.connect(
+            lambda: self._show_simulated_action("Actualizar vista")
+        )
+        action_info.triggered.connect(
+            lambda: self._show_simulated_action(
+                "Información de interfaz"
+            )
+        )
+
+        view_button = self._create_menu_button(
+            "Ver",
+            view_menu,
+        )
+
+        nav_layout.addWidget(file_button)
+        nav_layout.addWidget(edit_button)
+        nav_layout.addWidget(view_button)
+
+        layout.addWidget(navigation)
+
+        # Estado compacto
         status = QLabel(f"●  {self.load_status}")
         status.setObjectName("statusBadge")
         status.setAlignment(Qt.AlignCenter)
 
-        layout.addLayout(brand_layout)
-        layout.addStretch()
         layout.addWidget(status)
 
+        # Settings como acción independiente
+        settings_button = QPushButton("Settings")
+        settings_button.setObjectName("settingsMenuButton")
+        settings_button.setCursor(Qt.PointingHandCursor)
+        settings_button.setToolTip("Abrir configuración")
+
+        settings_button.clicked.connect(
+            self._open_settings_placeholder
+        )
+
+        layout.addWidget(settings_button)
+
         parent_layout.addWidget(header)
+    
+    def _create_menu_button(
+        self,
+        text: str,
+        menu: QMenu,
+    ) -> QToolButton:
+
+        button = QToolButton()
+
+        button.setText(text)
+        button.setObjectName("menuButton")
+        button.setMenu(menu)
+
+        button.setPopupMode(
+            QToolButton.InstantPopup
+        )
+
+        button.setToolButtonStyle(
+            Qt.ToolButtonTextOnly
+        )
+
+        button.setCursor(Qt.PointingHandCursor)
+
+        return button
+    
+    def _show_simulated_action(
+        self,
+        action_name: str,
+    ):
+        QMessageBox.information(
+            self,
+            "Función simulada",
+            (
+                f"La opción «{action_name}» forma parte "
+                "del menú simulado solicitado por el proyecto."
+            ),
+        )
+    
+    def _open_settings_placeholder(self):
+        QMessageBox.information(
+            self,
+            "Settings",
+            (
+                "El panel de configuración estará disponible "
+                "en la siguiente etapa del desarrollo."
+            ),
+        )
 
     def _build_profile_card(self, parent_layout):
         card = QFrame()
@@ -151,6 +290,10 @@ class MainWindow(QMainWindow):
         layout.addLayout(information, 1)
 
         parent_layout.addWidget(card)
+        
+        self.settings_button.clicked.connect(
+            self._open_settings_placeholder
+        )
 
     def _build_info_cards(self, parent_layout):
         cards_layout = QHBoxLayout()
@@ -252,13 +395,13 @@ class MainWindow(QMainWindow):
 
             QLabel#appName {
                 color: #202824;
-                font-size: 23px;
+                font-size: 21px;
                 font-weight: 700;
             }
 
             QLabel#appSubtitle {
                 color: #7A8680;
-                font-size: 12px;
+                font-size: 11px;
             }
 
             QLabel#statusBadge {
@@ -363,6 +506,91 @@ class MainWindow(QMainWindow):
             QLabel#cardDescription {
                 color: #66716C;
                 font-size: 12px;
+            }
+            
+            QFrame#navigationBar {
+                background-color: #F0F3F1;
+                border: 1px solid #E0E5E2;
+                border-radius: 12px;
+            }
+
+            QToolButton#menuButton {
+                background-color: transparent;
+                color: #46524C;
+                border: none;
+                border-radius: 8px;
+                padding: 8px 13px;
+                font-size: 12px;
+                font-weight: 600;
+            }
+
+            QToolButton#menuButton:hover {
+                background-color: #FAFBF9;
+                color: #274F47;
+            }
+
+            QToolButton#menuButton:pressed {
+                background-color: #E2E9E5;
+            }
+
+            QToolButton#menuButton::menu-indicator {
+                subcontrol-position: right center;
+                subcontrol-origin: padding;
+                right: 5px;
+            }
+
+            QLabel#statusBadge {
+                background-color: transparent;
+                color: #3F7469;
+                border: none;
+                padding: 7px 4px;
+                font-size: 11px;
+                font-weight: 600;
+            }
+
+            QPushButton#settingsMenuButton {
+                background-color: #3F7469;
+                color: #F8FBF9;
+                border: none;
+                border-radius: 10px;
+                padding: 9px 15px;
+                font-size: 12px;
+                font-weight: 600;
+            }
+
+            QPushButton#settingsMenuButton:hover {
+                background-color: #35655C;
+            }
+
+            QPushButton#settingsMenuButton:pressed {
+                background-color: #2B554D;
+            }
+
+            QMenu {
+                background-color: #FCFCFA;
+                color: #303A35;
+                border: 1px solid #D9E0DC;
+                border-radius: 10px;
+                padding: 5px;
+                font-size: 12px;
+            }
+
+            QMenu::item {
+                background-color: transparent;
+                padding: 9px 26px 9px 12px;
+                border-radius: 7px;
+                margin: 1px;
+            }
+
+            QMenu::item:selected {
+                background-color: #E7EFEB;
+                color: #315E55;
+            }
+
+            QMenu::separator {
+                height: 1px;
+                background-color: #E3E7E5;
+                margin: 5px 7px;
             }
             """
         )
