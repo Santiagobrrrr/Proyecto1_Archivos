@@ -14,10 +14,15 @@ from app.core.user_config import UserConfig
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, config: UserConfig):
+    def __init__(
+        self,
+        config: UserConfig,
+        load_status: str = "Sistema listo",
+    ):
         super().__init__()
 
         self.config = config
+        self.load_status = load_status
 
         self.setWindowTitle("UserConfig")
         self.resize(1120, 700)
@@ -64,7 +69,7 @@ class MainWindow(QMainWindow):
         brand_layout.addWidget(app_name)
         brand_layout.addWidget(subtitle)
 
-        status = QLabel("●  Sistema listo")
+        status = QLabel(f"●  {self.load_status}")
         status.setObjectName("statusBadge")
         status.setAlignment(Qt.AlignCenter)
 

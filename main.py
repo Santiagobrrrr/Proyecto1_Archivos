@@ -2,7 +2,7 @@ import sys
 
 from PySide6.QtWidgets import QApplication
 
-from app.core.user_config import UserConfig
+from app.services.config_manager import ConfigManager
 from app.ui.main_window import MainWindow
 
 
@@ -12,9 +12,15 @@ def main() -> int:
     app.setApplicationName("UserConfig")
     app.setOrganizationName("Proyecto Manejo de Archivos")
 
-    config = UserConfig()
+    config_manager = ConfigManager()
 
-    window = MainWindow(config)
+    config, load_status = config_manager.load_config()
+
+    window = MainWindow(
+        config=config,
+        load_status=load_status,
+    )
+
     window.show()
 
     return app.exec()
