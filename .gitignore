@@ -1,0 +1,20 @@
+# Entorno virtual
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# IDE
+.vscode/
+.idea/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Temporales de la aplicación
+data/*.tmp
+
+# Logs
+logs/*.log
