@@ -18,6 +18,7 @@ def main() -> int:
 
     window = MainWindow(
         config=config,
+        config_manager=config_manager,
         load_status=load_status,
     )
 

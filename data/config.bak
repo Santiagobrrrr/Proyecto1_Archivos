@@ -1,9 +1,9 @@
 {
-    "nombre_usuario": "José Muñoz",
+    "nombre_usuario": "Santiago Batz",
     "tema_interfaz": "claro",
-    "idioma": "es-ES",
-    "tamaño_fuente": 14,
-    "color_barra_menu": "#3F7469",
-    "color_letra": "#F8FBF9",
-    "foto_perfil": ""
+    "idioma": "es",
+    "tamaño_fuente": 15,
+    "color_barra_menu": "#dbffc0",
+    "color_letra": "#ffeac9",
+    "foto_perfil": "C:/Users/HP/Desktop/X-AMS-26/assets/characters/heroes/hero_gambito.png"
 }

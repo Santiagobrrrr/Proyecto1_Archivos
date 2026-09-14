@@ -1,4 +1,5 @@
 from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QDialog
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -14,16 +15,20 @@ from PySide6.QtWidgets import (
 )
 
 from app.core.user_config import UserConfig
+from app.services.config_manager import ConfigManager
+from app.ui.settings_window import SettingsWindow
 
 class MainWindow(QMainWindow):
     def __init__(
         self,
         config: UserConfig,
+        config_manager: ConfigManager,
         load_status: str = "Sistema listo",
     ):
         super().__init__()
 
         self.config = config
+        self.config_manager = config_manager
         self.load_status = load_status
 
         self.setWindowTitle("UserConfig")
@@ -164,7 +169,7 @@ class MainWindow(QMainWindow):
         settings_button.setToolTip("Abrir configuración")
 
         settings_button.clicked.connect(
-            self._open_settings_placeholder
+            self._open_settings
         )
 
         layout.addWidget(settings_button)
@@ -208,14 +213,26 @@ class MainWindow(QMainWindow):
             ),
         )
     
-    def _open_settings_placeholder(self):
-        QMessageBox.information(
-            self,
-            "Settings",
-            (
-                "El panel de configuración estará disponible "
-                "en la siguiente etapa del desarrollo."
-            ),
+    def _open_settings(self):
+        dialog = SettingsWindow(
+            config=self.config,
+            config_manager=self.config_manager,
+            parent=self,
+        )
+
+        if dialog.exec() == QDialog.Accepted:
+            self.config = dialog.updated_config
+            self._refresh_profile()
+    
+    def _refresh_profile(self):
+        self.greeting_label.setText(
+            f"Bienvenido, {self.config.nombre_usuario}"
+        )
+
+        self.preferences_label.setText(
+            f"{self._theme_name()}   ·   "
+            f"{self.config.idioma}   ·   "
+            f"{self.config.tamano_fuente} px"
         )
 
     def _build_profile_card(self, parent_layout):
@@ -239,10 +256,10 @@ class MainWindow(QMainWindow):
         eyebrow = QLabel("PERFIL DE USUARIO")
         eyebrow.setObjectName("eyebrow")
 
-        greeting = QLabel(
+        self.greeting_label = QLabel(
             f"Bienvenido, {self.config.nombre_usuario}"
         )
-        greeting.setObjectName("greeting")
+        self.greeting_label.setObjectName("greeting")
 
         description = QLabel(
             "Personaliza la aplicación y conserva tus "
@@ -251,12 +268,13 @@ class MainWindow(QMainWindow):
         description.setObjectName("description")
         description.setWordWrap(True)
 
-        preferences = QLabel(
+        self.preferences_label = QLabel(
             f"{self._theme_name()}   ·   "
             f"{self.config.idioma}   ·   "
             f"{self.config.tamano_fuente} px"
         )
-        preferences.setObjectName("preferences")
+        self.preferences_label.setObjectName("preferences")
+        self.preferences_label.setObjectName("preferences")
 
         buttons = QHBoxLayout()
         buttons.setSpacing(10)
@@ -280,9 +298,9 @@ class MainWindow(QMainWindow):
         buttons.addStretch()
 
         information.addWidget(eyebrow)
-        information.addWidget(greeting)
+        information.addWidget(self.greeting_label)
         information.addWidget(description)
-        information.addWidget(preferences)
+        information.addWidget(self.preferences_label)
         information.addSpacing(8)
         information.addLayout(buttons)
 
@@ -292,7 +310,7 @@ class MainWindow(QMainWindow):
         parent_layout.addWidget(card)
         
         self.settings_button.clicked.connect(
-            self._open_settings_placeholder
+            self._open_settings
         )
 
     def _build_info_cards(self, parent_layout):
