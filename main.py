@@ -2,6 +2,7 @@ import sys
 
 from PySide6.QtWidgets import QApplication
 
+from app.core.user_config import UserConfig
 from app.ui.main_window import MainWindow
 
 
@@ -11,7 +12,9 @@ def main() -> int:
     app.setApplicationName("UserConfig")
     app.setOrganizationName("Proyecto Manejo de Archivos")
 
-    window = MainWindow()
+    config = UserConfig()
+
+    window = MainWindow(config)
     window.show()
 
     return app.exec()
