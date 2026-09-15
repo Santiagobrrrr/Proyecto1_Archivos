@@ -3,12 +3,12 @@ from dataclasses import dataclass
 
 @dataclass
 class UserConfig:
-    nombre_usuario: str = "José Muñoz"
+    nombre_usuario: str = "Santiago Batz"
     tema_interfaz: str = "claro"
     idioma: str = "es-ES"
     tamano_fuente: int = 14
-    color_barra_menu: str = "#4F46E5"
-    color_letra: str = "#F8FAFC"
+    color_barra_menu: str = "#3F7469"
+    color_letra: str = "#F8FBF9"
     foto_perfil: str = ""
 
     def to_dict(self) -> dict:

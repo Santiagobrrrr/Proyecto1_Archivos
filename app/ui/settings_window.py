@@ -22,6 +22,11 @@ from PySide6.QtWidgets import (
 
 from app.core.user_config import UserConfig
 from app.services.config_manager import ConfigManager
+from app.ui.theme_manager import (
+    build_color_dialog_stylesheet,
+    build_message_stylesheet,
+    build_settings_stylesheet,
+)
 
 
 class SettingsWindow(QDialog):
@@ -34,6 +39,7 @@ class SettingsWindow(QDialog):
         super().__init__(parent)
 
         self.config_manager = config_manager
+        self.current_config = config
         self.updated_config = config
 
         self.menu_color = config.color_barra_menu
@@ -279,7 +285,7 @@ class SettingsWindow(QDialog):
         font_label.setObjectName("fieldLabel")
 
         self.font_size = QSpinBox()
-        self.font_size.setRange(8, 32)
+        self.font_size.setRange(10, 20)
         self.font_size.setSuffix(" px")
 
         # Colores
@@ -622,47 +628,11 @@ class SettingsWindow(QDialog):
             QColorDialog.DontUseNativeDialog,
             True,
         )
-
+        
         dialog.setStyleSheet(
-            """
-            QColorDialog {
-                background-color: #F4F6F5;
-                color: #27312D;
-            }
-
-            QColorDialog QLabel {
-                color: #4C5953;
-                font-size: 12px;
-            }
-
-            QColorDialog QLineEdit,
-            QColorDialog QSpinBox {
-                background-color: #FCFCFA;
-                color: #27312D;
-                border: 1px solid #D5DDD9;
-                border-radius: 8px;
-                padding: 6px;
-            }
-
-            QColorDialog QPushButton {
-                background-color: #F1F4F2;
-                color: #34413B;
-                border: 1px solid #D6DEDA;
-                border-radius: 8px;
-                padding: 8px 14px;
-                min-width: 75px;
-            }
-
-            QColorDialog QPushButton:hover {
-                background-color: #E5ECE8;
-            }
-
-            QColorDialog QPushButton:default {
-                background-color: #3F7469;
-                color: #F8FBF9;
-                border: none;
-            }
-            """
+            build_color_dialog_stylesheet(
+                self.current_config
+            )
         )
 
         if dialog.exec() == QDialog.Accepted:
@@ -832,58 +802,9 @@ class SettingsWindow(QDialog):
         root.addLayout(buttons)
 
         dialog.setStyleSheet(
-            """
-            QDialog {
-                background-color: #F4F6F5;
-            }
-
-            QLabel#messageText {
-                color: #27312D;
-                font-size: 13px;
-            }
-
-            QLabel#infoIcon {
-                background-color: #E4EFEB;
-                color: #35655C;
-                border-radius: 20px;
-                font-size: 20px;
-                font-weight: 700;
-            }
-
-            QLabel#warningIcon {
-                background-color: #FFF3D6;
-                color: #8A6517;
-                border-radius: 20px;
-                font-size: 22px;
-                font-weight: 700;
-            }
-
-            QLabel#errorIcon {
-                background-color: #FCE8E8;
-                color: #A83B3B;
-                border-radius: 20px;
-                font-size: 22px;
-                font-weight: 700;
-            }
-
-            QPushButton#messageButton {
-                background-color: #3F7469;
-                color: #F8FBF9;
-                border: none;
-                border-radius: 9px;
-                padding: 9px 20px;
-                min-width: 80px;
-                font-weight: 600;
-            }
-
-            QPushButton#messageButton:hover {
-                background-color: #35655C;
-            }
-
-            QPushButton#messageButton:pressed {
-                background-color: #2B554D;
-            }
-            """
+            build_message_stylesheet(
+                self.updated_config
+            )
         )
 
         dialog.adjustSize()
@@ -958,216 +879,7 @@ class SettingsWindow(QDialog):
 
     def _apply_style(self):
         self.setStyleSheet(
-            """
-            QDialog {
-                background-color: #F4F6F5;
-            }
-
-            QFrame#settingsHeader {
-                background-color: #F4F6F5;
-            }
-
-            QWidget#settingsContent {
-                background-color: #F4F6F5;
-            }
-
-            QScrollArea#settingsScroll {
-                background-color: #F4F6F5;
-                border: none;
-            }
-
-            QLabel#settingsTitle {
-                color: #202824;
-                font-size: 27px;
-                font-weight: 700;
-            }
-
-            QLabel#settingsSubtitle {
-                color: #68736D;
-                font-size: 13px;
-            }
-
-            QFrame#settingsCard {
-                background-color: #FCFCFA;
-                border: 1px solid #DDE3E0;
-                border-radius: 16px;
-            }
-
-            QLabel#sectionTitle {
-                color: #202824;
-                font-size: 16px;
-                font-weight: 700;
-            }
-
-            QLabel#sectionDescription {
-                color: #7A8680;
-                font-size: 11px;
-            }
-
-            QLabel#fieldLabel {
-                color: #4C5953;
-                font-size: 12px;
-                font-weight: 600;
-            }
-
-            QLineEdit,
-            QComboBox,
-            QSpinBox {
-                background-color: #F8FAF8;
-                color: #27312D;
-                border: 1px solid #D5DDD9;
-                border-radius: 10px;
-                padding: 9px 11px;
-                min-height: 22px;
-            }
-
-            QLineEdit:hover,
-            QComboBox:hover,
-            QSpinBox:hover {
-                border-color: #BDC9C3;
-            }
-
-            QLineEdit:focus,
-            QComboBox:focus,
-            QSpinBox:focus {
-                background-color: #FCFCFA;
-                border: 1px solid #5A887E;
-            }
-
-            QComboBox QAbstractItemView {
-                background-color: #FCFCFA;
-                color: #27312D;
-                border: 1px solid #D5DDD9;
-                selection-background-color: #E4EFEB;
-                selection-color: #274F47;
-                outline: 0;
-                padding: 5px;
-            }
-
-            QComboBox QAbstractItemView::item {
-                min-height: 34px;
-                padding-left: 8px;
-            }
-
-            QComboBox QAbstractItemView::item:hover {
-                background-color: #EDF3F0;
-                color: #274F47;
-            }
-
-            QComboBox QAbstractItemView::item:selected {
-                background-color: #E4EFEB;
-                color: #274F47;
-            }
-
-            QFrame#photoField {
-                background-color: #F8FAF8;
-                border: 1px solid #D5DDD9;
-                border-radius: 10px;
-                min-height: 40px;
-            }
-
-            QLabel#pathLabel {
-                color: #7A8680;
-                font-size: 11px;
-            }
-
-            QPushButton#compactButton {
-                background-color: #E9EFEC;
-                color: #34413B;
-                border: none;
-                border-radius: 8px;
-                padding: 8px 11px;
-                font-size: 11px;
-                font-weight: 600;
-            }
-
-            QPushButton#compactButton:hover {
-                background-color: #DEE8E3;
-            }
-
-            QPushButton#colorButton {
-                background-color: #F8FAF8;
-                color: #34413B;
-                border: 1px solid #D5DDD9;
-                border-radius: 10px;
-                padding: 10px 14px;
-                min-height: 22px;
-                text-align: left;
-                font-weight: 600;
-            }
-
-            QPushButton#colorButton:hover {
-                background-color: #EDF2EF;
-                border-color: #BDC9C3;
-            }
-
-            QFrame#settingsFooter {
-                background-color: #F4F6F5;
-                border-top: 1px solid #E0E5E2;
-            }
-
-            QPushButton#primaryButton {
-                background-color: #3F7469;
-                color: #F8FBF9;
-                border: none;
-                border-radius: 10px;
-                padding: 11px 18px;
-                font-weight: 600;
-            }
-
-            QPushButton#primaryButton:hover {
-                background-color: #35655C;
-            }
-
-            QPushButton#primaryButton:pressed {
-                background-color: #2B554D;
-            }
-
-            QPushButton#secondaryButton {
-                background-color: #F1F4F2;
-                color: #34413B;
-                border: 1px solid #D6DEDA;
-                border-radius: 10px;
-                padding: 10px 16px;
-                font-weight: 600;
-            }
-
-            QPushButton#secondaryButton:hover {
-                background-color: #E8EDEA;
-            }
-
-            QPushButton#ghostButton {
-                background-color: transparent;
-                color: #55635D;
-                border: none;
-                border-radius: 9px;
-                padding: 10px 14px;
-                font-weight: 600;
-            }
-
-            QPushButton#ghostButton:hover {
-                background-color: #EAEFEC;
-            }
-
-            QScrollBar:vertical {
-                background: transparent;
-                width: 8px;
-                margin: 4px 2px 4px 0;
-            }
-
-            QScrollBar::handle:vertical {
-                background: #C9D4CF;
-                border-radius: 4px;
-                min-height: 35px;
-            }
-
-            QScrollBar::handle:vertical:hover {
-                background: #AEBDB6;
-            }
-
-            QScrollBar::add-line:vertical,
-            QScrollBar::sub-line:vertical {
-                height: 0;
-            }
-            """
+            build_settings_stylesheet(
+                self.current_config
+            )
         )

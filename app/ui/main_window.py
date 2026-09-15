@@ -1,6 +1,6 @@
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QDialog
 from PySide6.QtWidgets import (
+    QDialog,
     QFrame,
     QHBoxLayout,
     QLabel,
@@ -14,9 +14,12 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.core.i18n import text
 from app.core.user_config import UserConfig
 from app.services.config_manager import ConfigManager
 from app.ui.settings_window import SettingsWindow
+from app.ui.theme_manager import build_main_stylesheet
+
 
 class MainWindow(QMainWindow):
     def __init__(
@@ -35,158 +38,317 @@ class MainWindow(QMainWindow):
         self.resize(1120, 700)
         self.setMinimumSize(960, 600)
 
+        self._render_ui()
+
+    def _txt(self, key: str) -> str:
+        return text(
+            self.config.idioma,
+            key,
+        )
+
+    def _render_ui(self):
+        old_widget = self.takeCentralWidget()
+
+        if old_widget is not None:
+            old_widget.deleteLater()
+
         self._build_ui()
-        self._apply_base_style()
+        self._apply_current_theme()
 
     def _build_ui(self):
         central_widget = QWidget()
-        central_widget.setObjectName("centralWidget")
+        central_widget.setObjectName(
+            "centralWidget"
+        )
 
-        self.setCentralWidget(central_widget)
+        self.setCentralWidget(
+            central_widget
+        )
 
-        main_layout = QVBoxLayout(central_widget)
-        main_layout.setContentsMargins(32, 28, 32, 28)
+        main_layout = QVBoxLayout(
+            central_widget
+        )
+
+        main_layout.setContentsMargins(
+            32,
+            28,
+            32,
+            28,
+        )
         main_layout.setSpacing(22)
 
-        self._build_header(main_layout)
-        self._build_profile_card(main_layout)
-        self._build_info_cards(main_layout)
+        self._build_header(
+            main_layout
+        )
+
+        self._build_profile_card(
+            main_layout
+        )
+
+        self._build_info_cards(
+            main_layout
+        )
 
         main_layout.addStretch()
 
-    def _build_header(self, parent_layout):
+    # =========================================================
+    # HEADER
+    # =========================================================
+
+    def _build_header(
+        self,
+        parent_layout,
+    ):
         header = QFrame()
         header.setObjectName("headerCard")
 
         layout = QHBoxLayout(header)
-        layout.setContentsMargins(24, 14, 20, 14)
+        layout.setContentsMargins(
+            24,
+            14,
+            20,
+            14,
+        )
         layout.setSpacing(16)
 
-        # Marca
         brand_layout = QVBoxLayout()
         brand_layout.setSpacing(1)
 
         app_name = QLabel("UserConfig")
         app_name.setObjectName("appName")
 
-        subtitle = QLabel("Configuración de usuario")
-        subtitle.setObjectName("appSubtitle")
+        subtitle = QLabel(
+            self._txt("app_subtitle")
+        )
+        subtitle.setObjectName(
+            "appSubtitle"
+        )
 
-        brand_layout.addWidget(app_name)
-        brand_layout.addWidget(subtitle)
+        brand_layout.addWidget(
+            app_name
+        )
+        brand_layout.addWidget(
+            subtitle
+        )
 
-        layout.addLayout(brand_layout)
+        layout.addLayout(
+            brand_layout
+        )
+
         layout.addStretch()
 
-        # Contenedor de navegación
         navigation = QFrame()
-        navigation.setObjectName("navigationBar")
+        navigation.setObjectName(
+            "navigationBar"
+        )
 
-        nav_layout = QHBoxLayout(navigation)
-        nav_layout.setContentsMargins(5, 5, 5, 5)
+        nav_layout = QHBoxLayout(
+            navigation
+        )
+        nav_layout.setContentsMargins(
+            5,
+            5,
+            5,
+            5,
+        )
         nav_layout.setSpacing(2)
 
-        # Archivo
-        file_menu = QMenu(self)
-
-        action_new = file_menu.addAction("Nuevo")
-        action_open = file_menu.addAction("Abrir")
-        file_menu.addSeparator()
-        action_exit = file_menu.addAction("Salir")
-
-        action_new.triggered.connect(
-            lambda: self._show_simulated_action("Nuevo")
-        )
-        action_open.triggered.connect(
-            lambda: self._show_simulated_action("Abrir")
-        )
-        action_exit.triggered.connect(self.close)
-
-        file_button = self._create_menu_button(
-            "Archivo",
-            file_menu,
-        )
-
-        # Edición
-        edit_menu = QMenu(self)
-
-        action_undo = edit_menu.addAction("Deshacer")
-        action_copy = edit_menu.addAction("Copiar")
-        action_paste = edit_menu.addAction("Pegar")
-
-        action_undo.triggered.connect(
-            lambda: self._show_simulated_action("Deshacer")
-        )
-        action_copy.triggered.connect(
-            lambda: self._show_simulated_action("Copiar")
-        )
-        action_paste.triggered.connect(
-            lambda: self._show_simulated_action("Pegar")
-        )
-
-        edit_button = self._create_menu_button(
-            "Edición",
-            edit_menu,
-        )
-
-        # Ver
-        view_menu = QMenu(self)
-
-        action_refresh = view_menu.addAction("Actualizar vista")
-        action_info = view_menu.addAction("Información de interfaz")
-
-        action_refresh.triggered.connect(
-            lambda: self._show_simulated_action("Actualizar vista")
-        )
-        action_info.triggered.connect(
-            lambda: self._show_simulated_action(
-                "Información de interfaz"
+        # Archivo / File
+        file_button = (
+            self._create_menu_button(
+                self._txt("menu_file")
             )
         )
 
-        view_button = self._create_menu_button(
-            "Ver",
-            view_menu,
+        file_menu = QMenu(
+            file_button
         )
 
-        nav_layout.addWidget(file_button)
-        nav_layout.addWidget(edit_button)
-        nav_layout.addWidget(view_button)
+        action_new = file_menu.addAction(
+            self._txt("new")
+        )
 
-        layout.addWidget(navigation)
+        action_open = file_menu.addAction(
+            self._txt("open")
+        )
 
-        # Estado compacto
-        status = QLabel(f"●  {self.load_status}")
-        status.setObjectName("statusBadge")
-        status.setAlignment(Qt.AlignCenter)
+        file_menu.addSeparator()
 
-        layout.addWidget(status)
+        action_exit = file_menu.addAction(
+            self._txt("exit")
+        )
 
-        # Settings como acción independiente
-        settings_button = QPushButton("Settings")
-        settings_button.setObjectName("settingsMenuButton")
-        settings_button.setCursor(Qt.PointingHandCursor)
-        settings_button.setToolTip("Abrir configuración")
+        action_new.triggered.connect(
+            lambda: self._show_simulated_action(
+                self._txt("new")
+            )
+        )
+
+        action_open.triggered.connect(
+            lambda: self._show_simulated_action(
+                self._txt("open")
+            )
+        )
+
+        action_exit.triggered.connect(
+            self.close
+        )
+
+        file_button.setMenu(
+            file_menu
+        )
+
+        # Edición / Edit
+        edit_button = (
+            self._create_menu_button(
+                self._txt("menu_edit")
+            )
+        )
+
+        edit_menu = QMenu(
+            edit_button
+        )
+
+        action_undo = edit_menu.addAction(
+            self._txt("undo")
+        )
+
+        action_copy = edit_menu.addAction(
+            self._txt("copy")
+        )
+
+        action_paste = edit_menu.addAction(
+            self._txt("paste")
+        )
+
+        action_undo.triggered.connect(
+            lambda: self._show_simulated_action(
+                self._txt("undo")
+            )
+        )
+
+        action_copy.triggered.connect(
+            lambda: self._show_simulated_action(
+                self._txt("copy")
+            )
+        )
+
+        action_paste.triggered.connect(
+            lambda: self._show_simulated_action(
+                self._txt("paste")
+            )
+        )
+
+        edit_button.setMenu(
+            edit_menu
+        )
+
+        # Ver / View
+        view_button = (
+            self._create_menu_button(
+                self._txt("menu_view")
+            )
+        )
+
+        view_menu = QMenu(
+            view_button
+        )
+
+        action_refresh = (
+            view_menu.addAction(
+                self._txt("refresh")
+            )
+        )
+
+        action_info = (
+            view_menu.addAction(
+                self._txt(
+                    "interface_info"
+                )
+            )
+        )
+
+        action_refresh.triggered.connect(
+            lambda: self._show_simulated_action(
+                self._txt("refresh")
+            )
+        )
+
+        action_info.triggered.connect(
+            lambda: self._show_simulated_action(
+                self._txt(
+                    "interface_info"
+                )
+            )
+        )
+
+        view_button.setMenu(
+            view_menu
+        )
+
+        nav_layout.addWidget(
+            file_button
+        )
+        nav_layout.addWidget(
+            edit_button
+        )
+        nav_layout.addWidget(
+            view_button
+        )
+
+        layout.addWidget(
+            navigation
+        )
+
+        status = QLabel(
+            f"●  {self._status_text()}"
+        )
+        status.setObjectName(
+            "statusBadge"
+        )
+        status.setAlignment(
+            Qt.AlignCenter
+        )
+        status.setToolTip(
+            self.load_status
+        )
+
+        layout.addWidget(
+            status
+        )
+
+        settings_button = QPushButton(
+            self._txt("settings")
+        )
+        settings_button.setObjectName(
+            "settingsMenuButton"
+        )
+        settings_button.setCursor(
+            Qt.PointingHandCursor
+        )
 
         settings_button.clicked.connect(
             self._open_settings
         )
 
-        layout.addWidget(settings_button)
+        layout.addWidget(
+            settings_button
+        )
 
-        parent_layout.addWidget(header)
-    
+        parent_layout.addWidget(
+            header
+        )
+
     def _create_menu_button(
         self,
-        text: str,
-        menu: QMenu,
+        label: str,
     ) -> QToolButton:
-
         button = QToolButton()
 
-        button.setText(text)
-        button.setObjectName("menuButton")
-        button.setMenu(menu)
+        button.setText(label)
+        button.setObjectName(
+            "menuButton"
+        )
 
         button.setPopupMode(
             QToolButton.InstantPopup
@@ -196,23 +358,44 @@ class MainWindow(QMainWindow):
             Qt.ToolButtonTextOnly
         )
 
-        button.setCursor(Qt.PointingHandCursor)
+        button.setCursor(
+            Qt.PointingHandCursor
+        )
 
         return button
-    
-    def _show_simulated_action(
-        self,
-        action_name: str,
-    ):
-        QMessageBox.information(
-            self,
-            "Función simulada",
-            (
-                f"La opción «{action_name}» forma parte "
-                "del menú simulado solicitado por el proyecto."
-            ),
+
+    def _status_text(self) -> str:
+        status_map = {
+            "Configuración cargada":
+                "status_ready",
+
+            "Valores predeterminados":
+                "status_default",
+
+            "Configuración inválida":
+                "status_invalid",
+
+            "Sin permiso de lectura":
+                "status_no_access",
+
+            "Formato no válido":
+                "status_format",
+
+            "Error al leer configuración":
+                "status_error",
+        }
+
+        key = status_map.get(
+            self.load_status,
+            "status_ready",
         )
-    
+
+        return self._txt(key)
+
+    # =========================================================
+    # SETTINGS
+    # =========================================================
+
     def _open_settings(self):
         dialog = SettingsWindow(
             config=self.config,
@@ -220,129 +403,202 @@ class MainWindow(QMainWindow):
             parent=self,
         )
 
-        if dialog.exec() == QDialog.Accepted:
-            self.config = dialog.updated_config
-            self._refresh_profile()
-    
-    def _refresh_profile(self):
-        self.greeting_label.setText(
-            f"Bienvenido, {self.config.nombre_usuario}"
-        )
+        if (
+            dialog.exec()
+            == QDialog.Accepted
+        ):
+            self.config = (
+                dialog.updated_config
+            )
 
-        self.preferences_label.setText(
-            f"{self._theme_name()}   ·   "
-            f"{self.config.idioma}   ·   "
-            f"{self.config.tamano_fuente} px"
-        )
+            # Reconstruye toda la interfaz para
+            # aplicar tema, idioma, fuente y colores.
+            self._render_ui()
 
-    def _build_profile_card(self, parent_layout):
+    # =========================================================
+    # PERFIL
+    # =========================================================
+
+    def _build_profile_card(
+        self,
+        parent_layout,
+    ):
         card = QFrame()
-        card.setObjectName("profileCard")
+        card.setObjectName(
+            "profileCard"
+        )
 
         layout = QHBoxLayout(card)
-        layout.setContentsMargins(30, 30, 30, 30)
+        layout.setContentsMargins(
+            30,
+            30,
+            30,
+            30,
+        )
         layout.setSpacing(24)
 
         avatar = QLabel(
-            self._get_initials(self.config.nombre_usuario)
+            self._get_initials(
+                self.config.nombre_usuario
+            )
         )
         avatar.setObjectName("avatar")
-        avatar.setAlignment(Qt.AlignCenter)
-        avatar.setFixedSize(92, 92)
+        avatar.setAlignment(
+            Qt.AlignCenter
+        )
+        avatar.setFixedSize(
+            92,
+            92,
+        )
 
         information = QVBoxLayout()
         information.setSpacing(8)
 
-        eyebrow = QLabel("PERFIL DE USUARIO")
-        eyebrow.setObjectName("eyebrow")
-
-        self.greeting_label = QLabel(
-            f"Bienvenido, {self.config.nombre_usuario}"
+        eyebrow = QLabel(
+            self._txt("profile")
         )
-        self.greeting_label.setObjectName("greeting")
+        eyebrow.setObjectName(
+            "eyebrow"
+        )
+
+        greeting = QLabel(
+            self._txt("welcome").format(
+                name=self.config.nombre_usuario
+            )
+        )
+        greeting.setObjectName(
+            "greeting"
+        )
 
         description = QLabel(
-            "Personaliza la aplicación y conserva tus "
-            "preferencias de forma segura entre sesiones."
+            self._txt(
+                "profile_description"
+            )
         )
-        description.setObjectName("description")
+        description.setObjectName(
+            "description"
+        )
         description.setWordWrap(True)
 
-        self.preferences_label = QLabel(
+        preferences = QLabel(
             f"{self._theme_name()}   ·   "
             f"{self.config.idioma}   ·   "
             f"{self.config.tamano_fuente} px"
         )
-        self.preferences_label.setObjectName("preferences")
-        self.preferences_label.setObjectName("preferences")
+        preferences.setObjectName(
+            "preferences"
+        )
 
         buttons = QHBoxLayout()
         buttons.setSpacing(10)
 
-        self.settings_button = QPushButton(
-            "Configurar preferencias"
+        settings_button = QPushButton(
+            self._txt("configure")
         )
-        self.settings_button.setObjectName("primaryButton")
-        self.settings_button.setCursor(
+        settings_button.setObjectName(
+            "primaryButton"
+        )
+        settings_button.setCursor(
             Qt.PointingHandCursor
         )
 
-        self.preview_button = QPushButton("Vista previa")
-        self.preview_button.setObjectName("secondaryButton")
-        self.preview_button.setCursor(
-            Qt.PointingHandCursor
-        )
-
-        buttons.addWidget(self.settings_button)
-        buttons.addWidget(self.preview_button)
-        buttons.addStretch()
-
-        information.addWidget(eyebrow)
-        information.addWidget(self.greeting_label)
-        information.addWidget(description)
-        information.addWidget(self.preferences_label)
-        information.addSpacing(8)
-        information.addLayout(buttons)
-
-        layout.addWidget(avatar)
-        layout.addLayout(information, 1)
-
-        parent_layout.addWidget(card)
-        
-        self.settings_button.clicked.connect(
+        settings_button.clicked.connect(
             self._open_settings
         )
 
-    def _build_info_cards(self, parent_layout):
+        preview_button = QPushButton(
+            self._txt("preview")
+        )
+        preview_button.setObjectName(
+            "secondaryButton"
+        )
+        preview_button.setCursor(
+            Qt.PointingHandCursor
+        )
+
+        buttons.addWidget(
+            settings_button
+        )
+        buttons.addWidget(
+            preview_button
+        )
+        buttons.addStretch()
+
+        information.addWidget(
+            eyebrow
+        )
+        information.addWidget(
+            greeting
+        )
+        information.addWidget(
+            description
+        )
+        information.addWidget(
+            preferences
+        )
+        information.addSpacing(8)
+        information.addLayout(
+            buttons
+        )
+
+        layout.addWidget(
+            avatar
+        )
+        layout.addLayout(
+            information,
+            1,
+        )
+
+        parent_layout.addWidget(
+            card
+        )
+
+    # =========================================================
+    # TARJETAS INFERIORES
+    # =========================================================
+
+    def _build_info_cards(
+        self,
+        parent_layout,
+    ):
         cards_layout = QHBoxLayout()
         cards_layout.setSpacing(16)
 
-        persistence_card = self._create_info_card(
-            "01",
-            "Persistencia",
-            "Tus preferencias permanecerán disponibles "
-            "cuando vuelvas a iniciar la aplicación.",
+        cards_layout.addWidget(
+            self._create_info_card(
+                "01",
+                self._txt("persistence"),
+                self._txt(
+                    "persistence_description"
+                ),
+            )
         )
 
-        personalization_card = self._create_info_card(
-            "02",
-            "Personalización",
-            "Tema, idioma, tipografía, colores y perfil "
-            "en un único espacio de configuración.",
+        cards_layout.addWidget(
+            self._create_info_card(
+                "02",
+                self._txt(
+                    "personalization"
+                ),
+                self._txt(
+                    "personalization_description"
+                ),
+            )
         )
 
-        security_card = self._create_info_card(
-            "03",
-            "Protección",
-            "La configuración contará con escritura segura, "
-            "respaldo y manejo controlado de errores.",
+        cards_layout.addWidget(
+            self._create_info_card(
+                "03",
+                self._txt("protection"),
+                self._txt(
+                    "protection_description"
+                ),
+            )
         )
 
-        cards_layout.addWidget(persistence_card)
-        cards_layout.addWidget(personalization_card)
-        cards_layout.addWidget(security_card)
-
-        parent_layout.addLayout(cards_layout)
+        parent_layout.addLayout(
+            cards_layout
+        )
 
     def _create_info_card(
         self,
@@ -351,35 +607,70 @@ class MainWindow(QMainWindow):
         description: str,
     ) -> QFrame:
         card = QFrame()
-        card.setObjectName("infoCard")
+        card.setObjectName(
+            "infoCard"
+        )
+
         card.setSizePolicy(
             QSizePolicy.Expanding,
             QSizePolicy.Preferred,
         )
 
         layout = QVBoxLayout(card)
-        layout.setContentsMargins(22, 20, 22, 22)
+        layout.setContentsMargins(
+            22,
+            20,
+            22,
+            22,
+        )
         layout.setSpacing(8)
 
-        number_label = QLabel(number)
-        number_label.setObjectName("cardNumber")
+        number_label = QLabel(
+            number
+        )
+        number_label.setObjectName(
+            "cardNumber"
+        )
 
-        title_label = QLabel(title)
-        title_label.setObjectName("cardTitle")
+        title_label = QLabel(
+            title
+        )
+        title_label.setObjectName(
+            "cardTitle"
+        )
 
-        description_label = QLabel(description)
-        description_label.setObjectName("cardDescription")
-        description_label.setWordWrap(True)
+        description_label = QLabel(
+            description
+        )
+        description_label.setObjectName(
+            "cardDescription"
+        )
+        description_label.setWordWrap(
+            True
+        )
 
-        layout.addWidget(number_label)
+        layout.addWidget(
+            number_label
+        )
         layout.addSpacing(8)
-        layout.addWidget(title_label)
-        layout.addWidget(description_label)
+        layout.addWidget(
+            title_label
+        )
+        layout.addWidget(
+            description_label
+        )
         layout.addStretch()
 
         return card
 
-    def _get_initials(self, name: str) -> str:
+    # =========================================================
+    # UTILIDADES
+    # =========================================================
+
+    def _get_initials(
+        self,
+        name: str,
+    ) -> str:
         parts = name.strip().split()
 
         if not parts:
@@ -389,226 +680,46 @@ class MainWindow(QMainWindow):
             return parts[0][0].upper()
 
         return (
-            parts[0][0] + parts[-1][0]
+            parts[0][0]
+            + parts[-1][0]
         ).upper()
 
     def _theme_name(self) -> str:
-        if self.config.tema_interfaz == "oscuro":
-            return "Tema oscuro"
+        if (
+            self.config.tema_interfaz
+            == "oscuro"
+        ):
+            return self._txt(
+                "theme_dark"
+            )
 
-        return "Tema claro"
+        return self._txt(
+            "theme_light"
+        )
 
-    def _apply_base_style(self):
+    def _show_simulated_action(
+        self,
+        action_name: str,
+    ):
+        QMessageBox.information(
+            self,
+            self._txt(
+                "simulated_title"
+            ),
+            self._txt(
+                "simulated_message"
+            ).format(
+                action=action_name
+            ),
+        )
+
+    # =========================================================
+    # TEMA
+    # =========================================================
+
+    def _apply_current_theme(self):
         self.setStyleSheet(
-            """
-            QWidget#centralWidget {
-                background-color: #F3F5F2;
-            }
-
-            QFrame#headerCard {
-                background-color: #FAFBF8;
-                border: 1px solid #DCE3DF;
-                border-radius: 18px;
-            }
-
-            QLabel#appName {
-                color: #202824;
-                font-size: 21px;
-                font-weight: 700;
-            }
-
-            QLabel#appSubtitle {
-                color: #7A8680;
-                font-size: 11px;
-            }
-
-            QLabel#statusBadge {
-                background-color: #E7F3EA;
-                color: #356849;
-                border: 1px solid #C9E2D0;
-                border-radius: 14px;
-                padding: 8px 14px;
-                font-size: 12px;
-                font-weight: 600;
-            }
-
-            QFrame#profileCard {
-                background-color: #FAFBF8;
-                border: 1px solid #DCE3DF;
-                border-radius: 24px;
-            }
-
-            QLabel#avatar {
-                background-color: #E4EFEB;
-                color: #35655C;
-                border: 1px solid #C9DDD6;
-                border-radius: 46px;
-                font-size: 27px;
-                font-weight: 700;
-            }
-
-            QLabel#eyebrow {
-                color: #4B786F;
-                font-size: 10px;
-                font-weight: 700;
-            }
-
-            QLabel#greeting {
-                color: #202824;
-                font-size: 27px;
-                font-weight: 700;
-            }
-
-            QLabel#description {
-                color: #66716C;
-                font-size: 13px;
-            }
-
-            QLabel#preferences {
-                color: #3F7469;
-                font-size: 12px;
-                font-weight: 600;
-            }
-
-            QPushButton#primaryButton {
-                background-color: #3F7469;
-                color: #F8FBF9;
-                border: none;
-                border-radius: 11px;
-                padding: 11px 18px;
-                font-size: 12px;
-                font-weight: 600;
-            }
-
-            QPushButton#primaryButton:hover {
-                background-color: #35655C;
-            }
-
-            QPushButton#primaryButton:pressed {
-                background-color: #2B554D;
-            }
-
-            QPushButton#secondaryButton {
-                background-color: #F2F4F1;
-                color: #34413B;
-                border: 1px solid #D6DEDA;
-                border-radius: 11px;
-                padding: 10px 18px;
-                font-size: 12px;
-                font-weight: 600;
-            }
-
-            QPushButton#secondaryButton:hover {
-                background-color: #E8ECE9;
-                border-color: #C8D2CD;
-            }
-
-            QFrame#infoCard {
-                background-color: #FAFBF8;
-                border: 1px solid #DCE3DF;
-                border-radius: 18px;
-            }
-
-            QLabel#cardNumber {
-                color: #78A399;
-                font-size: 12px;
-                font-weight: 700;
-            }
-
-            QLabel#cardTitle {
-                color: #27312D;
-                font-size: 16px;
-                font-weight: 700;
-            }
-
-            QLabel#cardDescription {
-                color: #66716C;
-                font-size: 12px;
-            }
-            
-            QFrame#navigationBar {
-                background-color: #F0F3F1;
-                border: 1px solid #E0E5E2;
-                border-radius: 12px;
-            }
-
-            QToolButton#menuButton {
-                background-color: transparent;
-                color: #46524C;
-                border: none;
-                border-radius: 8px;
-                padding: 8px 13px;
-                font-size: 12px;
-                font-weight: 600;
-            }
-
-            QToolButton#menuButton:hover {
-                background-color: #FAFBF9;
-                color: #274F47;
-            }
-
-            QToolButton#menuButton:pressed {
-                background-color: #E2E9E5;
-            }
-
-            QToolButton#menuButton::menu-indicator {
-                subcontrol-position: right center;
-                subcontrol-origin: padding;
-                right: 5px;
-            }
-
-            QLabel#statusBadge {
-                background-color: transparent;
-                color: #3F7469;
-                border: none;
-                padding: 7px 4px;
-                font-size: 11px;
-                font-weight: 600;
-            }
-
-            QPushButton#settingsMenuButton {
-                background-color: #3F7469;
-                color: #F8FBF9;
-                border: none;
-                border-radius: 10px;
-                padding: 9px 15px;
-                font-size: 12px;
-                font-weight: 600;
-            }
-
-            QPushButton#settingsMenuButton:hover {
-                background-color: #35655C;
-            }
-
-            QPushButton#settingsMenuButton:pressed {
-                background-color: #2B554D;
-            }
-
-            QMenu {
-                background-color: #FCFCFA;
-                color: #303A35;
-                border: 1px solid #D9E0DC;
-                border-radius: 10px;
-                padding: 5px;
-                font-size: 12px;
-            }
-
-            QMenu::item {
-                background-color: transparent;
-                padding: 9px 26px 9px 12px;
-                border-radius: 7px;
-                margin: 1px;
-            }
-
-            QMenu::item:selected {
-                background-color: #E7EFEB;
-                color: #315E55;
-            }
-
-            QMenu::separator {
-                height: 1px;
-                background-color: #E3E7E5;
-                margin: 5px 7px;
-            }
-            """
+            build_main_stylesheet(
+                self.config
+            )
         )
