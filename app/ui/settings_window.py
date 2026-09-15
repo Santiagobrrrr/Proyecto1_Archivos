@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
 
 from app.core.user_config import UserConfig
 from app.services.config_manager import ConfigManager
+from app.services.profile_manager import ProfileManager
 from app.ui.theme_manager import (
     build_color_dialog_stylesheet,
     build_message_stylesheet,
@@ -39,12 +40,22 @@ class SettingsWindow(QDialog):
         super().__init__(parent)
 
         self.config_manager = config_manager
+        self.profile_manager = ProfileManager()
+
+        # Configuración con la que se abrió Settings.
         self.current_config = config
+
+        # Configuración que MainWindow recibirá al guardar.
         self.updated_config = config
 
         self.menu_color = config.color_barra_menu
         self.text_color = config.color_letra
+
+        # Fotografía confirmada actualmente.
         self.profile_path = config.foto_perfil
+
+        # Nueva fotografía seleccionada, aún no guardada.
+        self.pending_profile_path = None
 
         self.setWindowTitle("Configuración")
         self.resize(900, 720)
@@ -126,7 +137,6 @@ class SettingsWindow(QDialog):
         content_layout.addStretch()
 
         scroll.setWidget(content)
-
         parent_layout.addWidget(scroll, 1)
 
     # =========================================================
@@ -160,7 +170,7 @@ class SettingsWindow(QDialog):
         )
         self.name_input.setClearButtonEnabled(True)
 
-        # Foto
+        # Fotografía
         photo_label = QLabel("Fotografía de perfil")
         photo_label.setObjectName("fieldLabel")
 
@@ -193,12 +203,10 @@ class SettingsWindow(QDialog):
             self.photo_path_label,
             1,
         )
-
         photo_layout.addWidget(
             self.photo_button
         )
 
-        # Grid
         layout.addWidget(
             title,
             0,
@@ -262,10 +270,14 @@ class SettingsWindow(QDialog):
         description = QLabel(
             "Ajusta cómo quieres visualizar la interfaz."
         )
-        description.setObjectName("sectionDescription")
+        description.setObjectName(
+            "sectionDescription"
+        )
 
         # Tema
-        theme_label = QLabel("Tema de interfaz")
+        theme_label = QLabel(
+            "Tema de interfaz"
+        )
         theme_label.setObjectName("fieldLabel")
 
         self.theme_combo = QComboBox()
@@ -280,8 +292,10 @@ class SettingsWindow(QDialog):
             "oscuro",
         )
 
-        # Tamaño fuente
-        font_label = QLabel("Tamaño de fuente")
+        # Tamaño de fuente
+        font_label = QLabel(
+            "Tamaño de fuente"
+        )
         font_label.setObjectName("fieldLabel")
 
         self.font_size = QSpinBox()
@@ -292,12 +306,16 @@ class SettingsWindow(QDialog):
         menu_color_label = QLabel(
             "Color de barra de menú"
         )
-        menu_color_label.setObjectName("fieldLabel")
+        menu_color_label.setObjectName(
+            "fieldLabel"
+        )
 
         text_color_label = QLabel(
             "Color de letra"
         )
-        text_color_label.setObjectName("fieldLabel")
+        text_color_label.setObjectName(
+            "fieldLabel"
+        )
 
         self.menu_color_button = QPushButton()
         self.menu_color_button.setObjectName(
@@ -321,7 +339,6 @@ class SettingsWindow(QDialog):
             self._select_text_color
         )
 
-        # Grid
         layout.addWidget(
             title,
             0,
@@ -560,9 +577,14 @@ class SettingsWindow(QDialog):
             config.tamano_fuente
         )
 
+        # Fotografía actualmente confirmada.
         self.profile_path = (
             config.foto_perfil
         )
+
+        # Al abrir Settings todavía no hay una
+        # fotografía nueva pendiente.
+        self.pending_profile_path = None
 
         self._refresh_photo_text()
         self._refresh_color_buttons()
@@ -582,9 +604,22 @@ class SettingsWindow(QDialog):
             ),
         )
 
-        if path:
-            self.profile_path = path
-            self._refresh_photo_text()
+        if not path:
+            return
+
+        # Solo queda seleccionada temporalmente.
+        # Todavía no se copia hasta pulsar Guardar.
+        self.pending_profile_path = path
+
+        filename = Path(path).name
+
+        self.photo_path_label.setText(
+            filename
+        )
+
+        self.photo_path_label.setToolTip(
+            path
+        )
 
     def _refresh_photo_text(self):
         if not self.profile_path:
@@ -622,20 +657,21 @@ class SettingsWindow(QDialog):
 
         dialog.setWindowTitle(title)
 
-        # Evita utilizar el diálogo nativo de Windows
-        # para poder controlar mejor sus colores.
         dialog.setOption(
             QColorDialog.DontUseNativeDialog,
             True,
         )
-        
+
         dialog.setStyleSheet(
             build_color_dialog_stylesheet(
                 self.current_config
             )
         )
 
-        if dialog.exec() == QDialog.Accepted:
+        if (
+            dialog.exec()
+            == QDialog.Accepted
+        ):
             return dialog.selectedColor()
 
         return None
@@ -720,10 +756,17 @@ class SettingsWindow(QDialog):
             defaults.color_letra
         )
 
+        # Quitamos foto confirmada y cualquier
+        # selección que todavía estuviera pendiente.
         self.profile_path = ""
+        self.pending_profile_path = None
 
         self._refresh_photo_text()
         self._refresh_color_buttons()
+
+    # =========================================================
+    # MENSAJES
+    # =========================================================
 
     def _show_message(
         self,
@@ -732,15 +775,20 @@ class SettingsWindow(QDialog):
         message: str,
     ):
         dialog = QDialog(self)
+
         dialog.setWindowTitle(title)
         dialog.setModal(True)
         dialog.setFixedWidth(430)
 
         root = QVBoxLayout(dialog)
-        root.setContentsMargins(24, 22, 24, 18)
+        root.setContentsMargins(
+            24,
+            22,
+            24,
+            18,
+        )
         root.setSpacing(18)
 
-        # Contenido principal
         content = QHBoxLayout()
         content.setSpacing(16)
 
@@ -748,28 +796,46 @@ class SettingsWindow(QDialog):
 
         if icon == QMessageBox.Information:
             icon_label.setText("i")
-            icon_label.setObjectName("infoIcon")
+            icon_label.setObjectName(
+                "infoIcon"
+            )
 
         elif icon == QMessageBox.Warning:
             icon_label.setText("!")
-            icon_label.setObjectName("warningIcon")
+            icon_label.setObjectName(
+                "warningIcon"
+            )
 
         elif icon == QMessageBox.Critical:
             icon_label.setText("×")
-            icon_label.setObjectName("errorIcon")
+            icon_label.setObjectName(
+                "errorIcon"
+            )
 
         else:
             icon_label.setText("i")
-            icon_label.setObjectName("infoIcon")
+            icon_label.setObjectName(
+                "infoIcon"
+            )
 
-        icon_label.setAlignment(Qt.AlignCenter)
-        icon_label.setFixedSize(40, 40)
+        icon_label.setAlignment(
+            Qt.AlignCenter
+        )
+        icon_label.setFixedSize(
+            40,
+            40,
+        )
 
-        message_label = QLabel(message)
-        message_label.setObjectName("messageText")
+        message_label = QLabel(
+            message
+        )
+        message_label.setObjectName(
+            "messageText"
+        )
         message_label.setWordWrap(True)
         message_label.setAlignment(
-            Qt.AlignVCenter | Qt.AlignLeft
+            Qt.AlignVCenter
+            | Qt.AlignLeft
         )
 
         content.addWidget(
@@ -784,12 +850,15 @@ class SettingsWindow(QDialog):
 
         root.addLayout(content)
 
-        # Botón
         buttons = QHBoxLayout()
         buttons.addStretch()
 
-        accept_button = QPushButton("Aceptar")
-        accept_button.setObjectName("messageButton")
+        accept_button = QPushButton(
+            "Aceptar"
+        )
+        accept_button.setObjectName(
+            "messageButton"
+        )
         accept_button.setCursor(
             Qt.PointingHandCursor
         )
@@ -797,7 +866,9 @@ class SettingsWindow(QDialog):
             dialog.accept
         )
 
-        buttons.addWidget(accept_button)
+        buttons.addWidget(
+            accept_button
+        )
 
         root.addLayout(buttons)
 
@@ -809,7 +880,7 @@ class SettingsWindow(QDialog):
 
         dialog.adjustSize()
         dialog.exec()
-    
+
     # =========================================================
     # GUARDAR
     # =========================================================
@@ -823,10 +894,69 @@ class SettingsWindow(QDialog):
             self._show_message(
                 QMessageBox.Warning,
                 "Datos incompletos",
-                "El nombre de usuario no puede estar vacío.",
+                (
+                    "El nombre de usuario "
+                    "no puede estar vacío."
+                ),
             )
             return
 
+        # Si no se seleccionó otra foto,
+        # conservamos la actualmente guardada.
+        saved_profile_path = (
+            self.profile_path
+        )
+
+        try:
+            # Solo copiamos una fotografía cuando
+            # el usuario eligió una NUEVA.
+            if self.pending_profile_path:
+                saved_profile_path = (
+                    self.profile_manager
+                    .save_profile_image(
+                        self.pending_profile_path
+                    )
+                )
+
+        except FileNotFoundError as error:
+            self._show_message(
+                QMessageBox.Warning,
+                "Fotografía no encontrada",
+                str(error),
+            )
+            return
+
+        except PermissionError:
+            self._show_message(
+                QMessageBox.Critical,
+                "Sin permisos",
+                (
+                    "No fue posible copiar la fotografía "
+                    "por falta de permisos."
+                ),
+            )
+            return
+
+        except ValueError as error:
+            self._show_message(
+                QMessageBox.Warning,
+                "Imagen no válida",
+                str(error),
+            )
+            return
+
+        except OSError:
+            self._show_message(
+                QMessageBox.Critical,
+                "Error de archivo",
+                (
+                    "Ocurrió un error al copiar la "
+                    "fotografía de perfil."
+                ),
+            )
+            return
+
+        # Creamos la nueva configuración completa.
         new_config = UserConfig(
             nombre_usuario=nombre,
             tema_interfaz=(
@@ -845,10 +975,11 @@ class SettingsWindow(QDialog):
                 self.text_color
             ),
             foto_perfil=(
-                self.profile_path
+                saved_profile_path
             ),
         )
 
+        # Guardamos JSON usando ConfigManager.
         success, message = (
             self.config_manager.save_config(
                 new_config
@@ -863,7 +994,18 @@ class SettingsWindow(QDialog):
             )
             return
 
+        # IMPORTANTE:
+        # Esta configuración será entregada
+        # nuevamente a MainWindow.
         self.updated_config = new_config
+
+        # La foto nueva pasa a ser la foto confirmada.
+        self.profile_path = (
+            saved_profile_path
+        )
+
+        # Ya no hay cambios pendientes.
+        self.pending_profile_path = None
 
         self._show_message(
             QMessageBox.Information,
@@ -871,6 +1013,7 @@ class SettingsWindow(QDialog):
             message,
         )
 
+        # Cerramos Settings indicando éxito.
         self.accept()
 
     # =========================================================

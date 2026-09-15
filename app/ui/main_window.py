@@ -14,6 +14,13 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from PySide6.QtGui import (
+    QPainter,
+    QPainterPath,
+    QPixmap,
+)
+
+from app.services.profile_manager import ProfileManager
 from app.core.i18n import text
 from app.core.user_config import UserConfig
 from app.services.config_manager import ConfigManager
@@ -32,6 +39,7 @@ class MainWindow(QMainWindow):
 
         self.config = config
         self.config_manager = config_manager
+        self.profile_manager = ProfileManager()
         self.load_status = load_status
 
         self.setWindowTitle("UserConfig")
@@ -437,19 +445,12 @@ class MainWindow(QMainWindow):
         )
         layout.setSpacing(24)
 
-        avatar = QLabel(
-            self._get_initials(
-                self.config.nombre_usuario
-            )
-        )
+        avatar = QLabel()
         avatar.setObjectName("avatar")
-        avatar.setAlignment(
-            Qt.AlignCenter
-        )
-        avatar.setFixedSize(
-            92,
-            92,
-        )
+        avatar.setAlignment(Qt.AlignCenter)
+        avatar.setFixedSize(92, 92)
+
+        self._load_avatar(avatar)
 
         information = QVBoxLayout()
         information.setSpacing(8)
@@ -712,6 +713,120 @@ class MainWindow(QMainWindow):
                 action=action_name
             ),
         )
+        
+    # otro
+    def _load_avatar(
+        self,
+        avatar: QLabel,
+    ):
+        """
+        Muestra la fotografía del usuario si existe.
+        En caso contrario, muestra sus iniciales.
+        """
+
+        profile_path = (
+            self.profile_manager.resolve_profile_path(
+                self.config.foto_perfil
+            )
+        )
+
+        if (
+            profile_path is not None
+            and profile_path.exists()
+        ):
+            pixmap = QPixmap(
+                str(profile_path)
+            )
+
+            if not pixmap.isNull():
+                avatar.setText("")
+                avatar.setPixmap(
+                    self._circular_pixmap(
+                        pixmap,
+                        92,
+                    )
+                )
+
+                return
+
+        # Fallback: iniciales
+        avatar.setPixmap(QPixmap())
+        avatar.setText(
+            self._get_initials(
+                self.config.nombre_usuario
+            )
+        )
+
+
+    def _circular_pixmap(
+        self,
+        source: QPixmap,
+        size: int,
+    ) -> QPixmap:
+        """
+        Recorta una imagen cuadrada y la dibuja
+        dentro de un círculo.
+        """
+
+        scaled = source.scaled(
+            size,
+            size,
+            Qt.KeepAspectRatioByExpanding,
+            Qt.SmoothTransformation,
+        )
+
+        x = max(
+            0,
+            (scaled.width() - size) // 2,
+        )
+
+        y = max(
+            0,
+            (scaled.height() - size) // 2,
+        )
+
+        cropped = scaled.copy(
+            x,
+            y,
+            size,
+            size,
+        )
+
+        result = QPixmap(
+            size,
+            size,
+        )
+
+        result.fill(
+            Qt.transparent
+        )
+
+        painter = QPainter(result)
+
+        painter.setRenderHint(
+            QPainter.Antialiasing,
+            True,
+        )
+
+        path = QPainterPath()
+        path.addEllipse(
+            0,
+            0,
+            size,
+            size,
+        )
+
+        painter.setClipPath(path)
+
+        painter.drawPixmap(
+            0,
+            0,
+            cropped,
+        )
+
+        painter.end()
+
+        return result
 
     # =========================================================
     # TEMA
