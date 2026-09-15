@@ -58,6 +58,8 @@ TEXTS = {
             "La opción «{action}» forma parte del menú "
             "simulado solicitado por el proyecto."
         ),
+        
+        "status_recovered": "Configuración recuperada",
     },
 
     "en": {
@@ -119,6 +121,8 @@ TEXTS = {
             "The «{action}» option is part of the simulated "
             "menu requested by the project."
         ),
+        
+        "status_recovered": "Configuration recovered",
     },
 }
 

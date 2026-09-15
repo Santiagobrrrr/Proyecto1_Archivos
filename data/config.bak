@@ -1,9 +1,9 @@
 {
     "nombre_usuario": "Santiago Batz",
-    "tema_interfaz": "claro",
+    "tema_interfaz": "oscuro",
     "idioma": "es-ES",
-    "tamaño_fuente": 20,
+    "tamaño_fuente": 10,
     "color_barra_menu": "#3F7469",
     "color_letra": "#F8FBF9",
-    "foto_perfil": ""
+    "foto_perfil": "data/profiles/profile_cb871e8415.png"
 }

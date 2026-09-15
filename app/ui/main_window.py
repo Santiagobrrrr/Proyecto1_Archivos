@@ -391,6 +391,8 @@ class MainWindow(QMainWindow):
 
             "Error al leer configuración":
                 "status_error",
+            
+            "Configuración recuperada": "status_recovered",
         }
 
         key = status_map.get(
