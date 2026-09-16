@@ -1,29 +1,29 @@
 from PySide6.QtCore import Qt
+from PySide6.QtGui import (
+    QColor,
+    QPainter,
+    QPainterPath,
+    QPixmap,
+)
 from PySide6.QtWidgets import (
     QDialog,
     QFrame,
+    QGraphicsDropShadowEffect,
     QHBoxLayout,
     QLabel,
     QMainWindow,
     QMenu,
     QMessageBox,
     QPushButton,
-    QSizePolicy,
     QToolButton,
     QVBoxLayout,
     QWidget,
 )
 
-from PySide6.QtGui import (
-    QPainter,
-    QPainterPath,
-    QPixmap,
-)
-
-from app.services.profile_manager import ProfileManager
 from app.core.i18n import text
 from app.core.user_config import UserConfig
 from app.services.config_manager import ConfigManager
+from app.services.profile_manager import ProfileManager
 from app.ui.settings_window import SettingsWindow
 from app.ui.theme_manager import build_main_stylesheet
 
@@ -48,11 +48,19 @@ class MainWindow(QMainWindow):
 
         self._render_ui()
 
+    # =========================================================
+    # TRADUCCIONES
+    # =========================================================
+
     def _txt(self, key: str) -> str:
         return text(
             self.config.idioma,
             key,
         )
+
+    # =========================================================
+    # CONSTRUIR INTERFAZ
+    # =========================================================
 
     def _render_ui(self):
         old_widget = self.takeCentralWidget()
@@ -78,22 +86,19 @@ class MainWindow(QMainWindow):
         )
 
         main_layout.setContentsMargins(
-            32,
-            28,
-            32,
+            30,
+            26,
+            30,
             28,
         )
-        main_layout.setSpacing(22)
+
+        main_layout.setSpacing(18)
 
         self._build_header(
             main_layout
         )
 
         self._build_profile_card(
-            main_layout
-        )
-
-        self._build_info_cards(
             main_layout
         )
 
@@ -108,44 +113,55 @@ class MainWindow(QMainWindow):
         parent_layout,
     ):
         header = QFrame()
-        header.setObjectName("headerCard")
-
-        layout = QHBoxLayout(header)
-        layout.setContentsMargins(
-            24,
-            14,
-            20,
-            14,
+        header.setObjectName(
+            "headerCard"
         )
-        layout.setSpacing(16)
+
+        layout = QHBoxLayout(
+            header
+        )
+
+        layout.setContentsMargins(
+            22,
+            15,
+            18,
+            15,
+        )
+
+        layout.setSpacing(14)
+
+        # -----------------------------------------------------
+        # Título
+        # -----------------------------------------------------
 
         brand_layout = QVBoxLayout()
         brand_layout.setSpacing(1)
 
-        app_name = QLabel("UserConfig")
-        app_name.setObjectName("appName")
-
-        subtitle = QLabel(
+        app_name = QLabel(
             self._txt("app_subtitle")
         )
-        subtitle.setObjectName(
-            "appSubtitle"
+
+        app_name.setObjectName(
+            "appName"
         )
 
         brand_layout.addWidget(
             app_name
-        )
-        brand_layout.addWidget(
-            subtitle
         )
 
         layout.addLayout(
             brand_layout
         )
 
+        layout.addSpacing(8)
         layout.addStretch()
 
+        # -----------------------------------------------------
+        # Navegación
+        # -----------------------------------------------------
+
         navigation = QFrame()
+
         navigation.setObjectName(
             "navigationBar"
         )
@@ -153,15 +169,20 @@ class MainWindow(QMainWindow):
         nav_layout = QHBoxLayout(
             navigation
         )
+
         nav_layout.setContentsMargins(
-            5,
-            5,
-            5,
-            5,
+            4,
+            4,
+            4,
+            4,
         )
+
         nav_layout.setSpacing(2)
 
-        # Archivo / File
+        # =====================================================
+        # ARCHIVO
+        # =====================================================
+
         file_button = (
             self._create_menu_button(
                 self._txt("menu_file")
@@ -188,16 +209,17 @@ class MainWindow(QMainWindow):
 
         action_new.triggered.connect(
             lambda: self._show_simulated_action(
-                self._txt("new")
+                "new"
             )
         )
 
         action_open.triggered.connect(
             lambda: self._show_simulated_action(
-                self._txt("open")
+                "open"
             )
         )
 
+        # Salir sí tiene funcionalidad real.
         action_exit.triggered.connect(
             self.close
         )
@@ -206,7 +228,10 @@ class MainWindow(QMainWindow):
             file_menu
         )
 
-        # Edición / Edit
+        # =====================================================
+        # EDICIÓN
+        # =====================================================
+
         edit_button = (
             self._create_menu_button(
                 self._txt("menu_edit")
@@ -231,19 +256,19 @@ class MainWindow(QMainWindow):
 
         action_undo.triggered.connect(
             lambda: self._show_simulated_action(
-                self._txt("undo")
+                "undo"
             )
         )
 
         action_copy.triggered.connect(
             lambda: self._show_simulated_action(
-                self._txt("copy")
+                "copy"
             )
         )
 
         action_paste.triggered.connect(
             lambda: self._show_simulated_action(
-                self._txt("paste")
+                "paste"
             )
         )
 
@@ -251,7 +276,10 @@ class MainWindow(QMainWindow):
             edit_menu
         )
 
-        # Ver / View
+        # =====================================================
+        # VER
+        # =====================================================
+
         view_button = (
             self._create_menu_button(
                 self._txt("menu_view")
@@ -278,15 +306,13 @@ class MainWindow(QMainWindow):
 
         action_refresh.triggered.connect(
             lambda: self._show_simulated_action(
-                self._txt("refresh")
+                "refresh"
             )
         )
 
         action_info.triggered.connect(
             lambda: self._show_simulated_action(
-                self._txt(
-                    "interface_info"
-                )
+                "interface_info"
             )
         )
 
@@ -294,12 +320,18 @@ class MainWindow(QMainWindow):
             view_menu
         )
 
+        # -----------------------------------------------------
+        # Agregar menús
+        # -----------------------------------------------------
+
         nav_layout.addWidget(
             file_button
         )
+
         nav_layout.addWidget(
             edit_button
         )
+
         nav_layout.addWidget(
             view_button
         )
@@ -308,15 +340,27 @@ class MainWindow(QMainWindow):
             navigation
         )
 
+        # -----------------------------------------------------
+        # Estado
+        # -----------------------------------------------------
+
         status = QLabel(
             f"●  {self._status_text()}"
         )
+
         status.setObjectName(
             "statusBadge"
         )
+
+        status.setProperty(
+            "state",
+            self._status_state(),
+        )
+
         status.setAlignment(
             Qt.AlignCenter
         )
+
         status.setToolTip(
             self.load_status
         )
@@ -325,14 +369,24 @@ class MainWindow(QMainWindow):
             status
         )
 
+        # -----------------------------------------------------
+        # Settings
+        # -----------------------------------------------------
+
         settings_button = QPushButton(
             self._txt("settings")
         )
+
         settings_button.setObjectName(
             "settingsMenuButton"
         )
+
         settings_button.setCursor(
             Qt.PointingHandCursor
+        )
+
+        settings_button.setToolTip(
+            self._txt("settings")
         )
 
         settings_button.clicked.connect(
@@ -347,13 +401,22 @@ class MainWindow(QMainWindow):
             header
         )
 
+        self._apply_shadow(
+            header,
+            blur=26,
+            y_offset=5,
+        )
+
     def _create_menu_button(
         self,
         label: str,
     ) -> QToolButton:
         button = QToolButton()
 
-        button.setText(label)
+        button.setText(
+            label
+        )
+
         button.setObjectName(
             "menuButton"
         )
@@ -371,6 +434,10 @@ class MainWindow(QMainWindow):
         )
 
         return button
+
+    # =========================================================
+    # ESTADO
+    # =========================================================
 
     def _status_text(self) -> str:
         status_map = {
@@ -391,8 +458,9 @@ class MainWindow(QMainWindow):
 
             "Error al leer configuración":
                 "status_error",
-            
-            "Configuración recuperada": "status_recovered",
+
+            "Configuración recuperada":
+                "status_recovered",
         }
 
         key = status_map.get(
@@ -400,7 +468,38 @@ class MainWindow(QMainWindow):
             "status_ready",
         )
 
-        return self._txt(key)
+        return self._txt(
+            key
+        )
+
+    def _status_state(self) -> str:
+        states = {
+            "Configuración cargada":
+                "ok",
+
+            "Valores predeterminados":
+                "info",
+
+            "Configuración recuperada":
+                "recovered",
+
+            "Configuración inválida":
+                "warning",
+
+            "Formato no válido":
+                "warning",
+
+            "Sin permiso de lectura":
+                "error",
+
+            "Error al leer configuración":
+                "error",
+        }
+
+        return states.get(
+            self.load_status,
+            "ok",
+        )
 
     # =========================================================
     # SETTINGS
@@ -421,8 +520,8 @@ class MainWindow(QMainWindow):
                 dialog.updated_config
             )
 
-            # Reconstruye toda la interfaz para
-            # aplicar tema, idioma, fuente y colores.
+            # Reconstruye la interfaz para aplicar
+            # tema, idioma, fuente y colores.
             self._render_ui()
 
     # =========================================================
@@ -434,25 +533,51 @@ class MainWindow(QMainWindow):
         parent_layout,
     ):
         card = QFrame()
+
         card.setObjectName(
             "profileCard"
         )
 
-        layout = QHBoxLayout(card)
+        layout = QHBoxLayout(
+            card
+        )
+
         layout.setContentsMargins(
+            32,
             30,
-            30,
-            30,
+            32,
             30,
         )
-        layout.setSpacing(24)
+
+        layout.setSpacing(28)
+
+        # -----------------------------------------------------
+        # Avatar
+        # -----------------------------------------------------
 
         avatar = QLabel()
-        avatar.setObjectName("avatar")
-        avatar.setAlignment(Qt.AlignCenter)
-        avatar.setFixedSize(92, 92)
 
-        self._load_avatar(avatar)
+        avatar.setObjectName(
+            "avatar"
+        )
+
+        avatar.setAlignment(
+            Qt.AlignCenter
+        )
+
+        avatar.setFixedSize(
+            104,
+            104,
+        )
+
+        self._load_avatar(
+            avatar,
+            104,
+        )
+
+        # -----------------------------------------------------
+        # Información
+        # -----------------------------------------------------
 
         information = QVBoxLayout()
         information.setSpacing(8)
@@ -460,15 +585,20 @@ class MainWindow(QMainWindow):
         eyebrow = QLabel(
             self._txt("profile")
         )
+
         eyebrow.setObjectName(
             "eyebrow"
         )
 
         greeting = QLabel(
             self._txt("welcome").format(
-                name=self.config.nombre_usuario
+                name=(
+                    self.config
+                    .nombre_usuario
+                )
             )
         )
+
         greeting.setObjectName(
             "greeting"
         )
@@ -478,19 +608,53 @@ class MainWindow(QMainWindow):
                 "profile_description"
             )
         )
+
         description.setObjectName(
             "description"
         )
-        description.setWordWrap(True)
 
-        preferences = QLabel(
-            f"{self._theme_name()}   ·   "
-            f"{self.config.idioma}   ·   "
-            f"{self.config.tamano_fuente} px"
+        description.setWordWrap(
+            True
         )
-        preferences.setObjectName(
-            "preferences"
+
+        # -----------------------------------------------------
+        # Chips de preferencias
+        # -----------------------------------------------------
+
+        chips = QHBoxLayout()
+        chips.setSpacing(8)
+
+        chip_values = (
+            self._theme_name(),
+            self.config.idioma,
+            (
+                f"{self.config.tamano_fuente} "
+                "px"
+            ),
         )
+
+        for value in chip_values:
+            chip = QLabel(
+                value
+            )
+
+            chip.setObjectName(
+                "preferenceChip"
+            )
+
+            chip.setAlignment(
+                Qt.AlignCenter
+            )
+
+            chips.addWidget(
+                chip
+            )
+
+        chips.addStretch()
+
+        # -----------------------------------------------------
+        # Botón real de configuración
+        # -----------------------------------------------------
 
         buttons = QHBoxLayout()
         buttons.setSpacing(10)
@@ -498,9 +662,11 @@ class MainWindow(QMainWindow):
         settings_button = QPushButton(
             self._txt("configure")
         )
+
         settings_button.setObjectName(
             "primaryButton"
         )
+
         settings_button.setCursor(
             Qt.PointingHandCursor
         )
@@ -509,44 +675,46 @@ class MainWindow(QMainWindow):
             self._open_settings
         )
 
-        preview_button = QPushButton(
-            self._txt("preview")
-        )
-        preview_button.setObjectName(
-            "secondaryButton"
-        )
-        preview_button.setCursor(
-            Qt.PointingHandCursor
-        )
-
         buttons.addWidget(
             settings_button
         )
-        buttons.addWidget(
-            preview_button
-        )
+
         buttons.addStretch()
+
+        # -----------------------------------------------------
+        # Composición
+        # -----------------------------------------------------
 
         information.addWidget(
             eyebrow
         )
+
         information.addWidget(
             greeting
         )
+
         information.addWidget(
             description
         )
-        information.addWidget(
-            preferences
+
+        information.addSpacing(2)
+
+        information.addLayout(
+            chips
         )
+
         information.addSpacing(8)
+
         information.addLayout(
             buttons
         )
 
         layout.addWidget(
-            avatar
+            avatar,
+            0,
+            Qt.AlignVCenter,
         )
+
         layout.addLayout(
             information,
             1,
@@ -556,178 +724,107 @@ class MainWindow(QMainWindow):
             card
         )
 
+        self._apply_shadow(
+            card,
+            blur=34,
+            y_offset=8,
+        )
+
     # =========================================================
-    # TARJETAS INFERIORES
+    # ACCIONES SIMULADAS
     # =========================================================
 
-    def _build_info_cards(
+    def _show_simulated_action(
         self,
-        parent_layout,
+        action_key: str,
     ):
-        cards_layout = QHBoxLayout()
-        cards_layout.setSpacing(16)
+        messages = {
+            "new": (
+                "new",
+                "msg_new",
+            ),
 
-        cards_layout.addWidget(
-            self._create_info_card(
-                "01",
-                self._txt("persistence"),
-                self._txt(
-                    "persistence_description"
-                ),
-            )
-        )
+            "open": (
+                "open",
+                "msg_open",
+            ),
 
-        cards_layout.addWidget(
-            self._create_info_card(
-                "02",
-                self._txt(
-                    "personalization"
-                ),
-                self._txt(
-                    "personalization_description"
-                ),
-            )
-        )
+            "undo": (
+                "undo",
+                "msg_undo",
+            ),
 
-        cards_layout.addWidget(
-            self._create_info_card(
-                "03",
-                self._txt("protection"),
-                self._txt(
-                    "protection_description"
-                ),
-            )
-        )
+            "copy": (
+                "copy",
+                "msg_copy",
+            ),
 
-        parent_layout.addLayout(
-            cards_layout
-        )
+            "paste": (
+                "paste",
+                "msg_paste",
+            ),
 
-    def _create_info_card(
-        self,
-        number: str,
-        title: str,
-        description: str,
-    ) -> QFrame:
-        card = QFrame()
-        card.setObjectName(
-            "infoCard"
+            "refresh": (
+                "refresh",
+                "msg_refresh",
+            ),
+
+            "interface_info": (
+                "interface_info",
+                "msg_interface_info",
+            ),
+        }
+
+        action_data = messages.get(
+            action_key
         )
 
-        card.setSizePolicy(
-            QSizePolicy.Expanding,
-            QSizePolicy.Preferred,
+        if action_data is None:
+            return
+
+        title_key, message_key = (
+            action_data
         )
 
-        layout = QVBoxLayout(card)
-        layout.setContentsMargins(
-            22,
-            20,
-            22,
-            22,
+        QMessageBox.information(
+            self,
+            self._txt(title_key),
+            self._txt(message_key),
         )
-        layout.setSpacing(8)
-
-        number_label = QLabel(
-            number
-        )
-        number_label.setObjectName(
-            "cardNumber"
-        )
-
-        title_label = QLabel(
-            title
-        )
-        title_label.setObjectName(
-            "cardTitle"
-        )
-
-        description_label = QLabel(
-            description
-        )
-        description_label.setObjectName(
-            "cardDescription"
-        )
-        description_label.setWordWrap(
-            True
-        )
-
-        layout.addWidget(
-            number_label
-        )
-        layout.addSpacing(8)
-        layout.addWidget(
-            title_label
-        )
-        layout.addWidget(
-            description_label
-        )
-        layout.addStretch()
-
-        return card
 
     # =========================================================
-    # UTILIDADES
+    # AVATAR
     # =========================================================
 
     def _get_initials(
         self,
         name: str,
     ) -> str:
-        parts = name.strip().split()
+        parts = (
+            name.strip().split()
+        )
 
         if not parts:
             return "U"
 
         if len(parts) == 1:
-            return parts[0][0].upper()
+            return (
+                parts[0][0].upper()
+            )
 
         return (
             parts[0][0]
             + parts[-1][0]
         ).upper()
 
-    def _theme_name(self) -> str:
-        if (
-            self.config.tema_interfaz
-            == "oscuro"
-        ):
-            return self._txt(
-                "theme_dark"
-            )
-
-        return self._txt(
-            "theme_light"
-        )
-
-    def _show_simulated_action(
-        self,
-        action_name: str,
-    ):
-        QMessageBox.information(
-            self,
-            self._txt(
-                "simulated_title"
-            ),
-            self._txt(
-                "simulated_message"
-            ).format(
-                action=action_name
-            ),
-        )
-        
-    # otro
     def _load_avatar(
         self,
         avatar: QLabel,
+        size: int = 104,
     ):
-        """
-        Muestra la fotografía del usuario si existe.
-        En caso contrario, muestra sus iniciales.
-        """
-
         profile_path = (
-            self.profile_manager.resolve_profile_path(
+            self.profile_manager
+            .resolve_profile_path(
                 self.config.foto_perfil
             )
         )
@@ -742,34 +839,33 @@ class MainWindow(QMainWindow):
 
             if not pixmap.isNull():
                 avatar.setText("")
+
                 avatar.setPixmap(
                     self._circular_pixmap(
                         pixmap,
-                        92,
+                        size,
                     )
                 )
 
                 return
 
-        # Fallback: iniciales
-        avatar.setPixmap(QPixmap())
+        # Si no hay fotografía válida,
+        # muestra las iniciales.
+        avatar.setPixmap(
+            QPixmap()
+        )
+
         avatar.setText(
             self._get_initials(
                 self.config.nombre_usuario
             )
         )
 
-
     def _circular_pixmap(
         self,
         source: QPixmap,
         size: int,
     ) -> QPixmap:
-        """
-        Recorta una imagen cuadrada y la dibuja
-        dentro de un círculo.
-        """
-
         scaled = source.scaled(
             size,
             size,
@@ -779,12 +875,18 @@ class MainWindow(QMainWindow):
 
         x = max(
             0,
-            (scaled.width() - size) // 2,
+            (
+                scaled.width()
+                - size
+            ) // 2,
         )
 
         y = max(
             0,
-            (scaled.height() - size) // 2,
+            (
+                scaled.height()
+                - size
+            ) // 2,
         )
 
         cropped = scaled.copy(
@@ -803,7 +905,9 @@ class MainWindow(QMainWindow):
             Qt.transparent
         )
 
-        painter = QPainter(result)
+        painter = QPainter(
+            result
+        )
 
         painter.setRenderHint(
             QPainter.Antialiasing,
@@ -811,6 +915,7 @@ class MainWindow(QMainWindow):
         )
 
         path = QPainterPath()
+
         path.addEllipse(
             0,
             0,
@@ -818,7 +923,9 @@ class MainWindow(QMainWindow):
             size,
         )
 
-        painter.setClipPath(path)
+        painter.setClipPath(
+            path
+        )
 
         painter.drawPixmap(
             0,
@@ -833,6 +940,67 @@ class MainWindow(QMainWindow):
     # =========================================================
     # TEMA
     # =========================================================
+
+    def _theme_name(self) -> str:
+        if (
+            self.config.tema_interfaz
+            == "oscuro"
+        ):
+            return self._txt(
+                "theme_dark"
+            )
+
+        return self._txt(
+            "theme_light"
+        )
+
+    def _apply_shadow(
+        self,
+        widget: QWidget,
+        blur: int = 28,
+        y_offset: int = 6,
+    ):
+        shadow = (
+            QGraphicsDropShadowEffect(
+                widget
+            )
+        )
+
+        shadow.setBlurRadius(
+            blur
+        )
+
+        shadow.setOffset(
+            0,
+            y_offset,
+        )
+
+        if (
+            self.config.tema_interfaz
+            == "oscuro"
+        ):
+            shadow.setColor(
+                QColor(
+                    0,
+                    0,
+                    0,
+                    92,
+                )
+            )
+
+        else:
+            shadow.setColor(
+                QColor(
+                    31,
+                    45,
+                    39,
+                    34,
+                )
+            )
+
+        widget.setGraphicsEffect(
+            shadow
+        )
 
     def _apply_current_theme(self):
         self.setStyleSheet(

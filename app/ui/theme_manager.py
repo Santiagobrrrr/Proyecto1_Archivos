@@ -10,13 +10,23 @@ LIGHT = {
     "text": "#202824",
     "muted": "#68736D",
     "border": "#DCE3DF",
+    "border_strong": "#C8D3CE",
     "accent": "#3F7469",
     "accent_hover": "#35655C",
     "accent_pressed": "#2B554D",
     "button_text": "#F8FBF9",
     "soft_accent": "#E4EFEB",
     "soft_text": "#35655C",
-    "status": "#356849",
+    "status_bg": "#E7F2EC",
+    "status_text": "#356849",
+    "info_bg": "#EAF0F5",
+    "info_text": "#48606F",
+    "recovered_bg": "#E9F0E4",
+    "recovered_text": "#4A6842",
+    "warning_bg": "#F6EFD9",
+    "warning_text": "#745B16",
+    "danger_bg": "#F5E4E4",
+    "danger_text": "#8A3F3F",
     "scroll": "#C9D4CF",
 }
 
@@ -28,13 +38,23 @@ DARK = {
     "text": "#E8EEEB",
     "muted": "#A6B1AB",
     "border": "#313C37",
+    "border_strong": "#45534D",
     "accent": "#6F9F94",
     "accent_hover": "#7FADA3",
     "accent_pressed": "#5E8B81",
     "button_text": "#101613",
     "soft_accent": "#243A34",
     "soft_text": "#A4D3C7",
-    "status": "#8BCDA4",
+    "status_bg": "#1F352A",
+    "status_text": "#8BCDA4",
+    "info_bg": "#243139",
+    "info_text": "#A8C1CE",
+    "recovered_bg": "#263527",
+    "recovered_text": "#A8CAA0",
+    "warning_bg": "#40351E",
+    "warning_text": "#E4C46F",
+    "danger_bg": "#402626",
+    "danger_text": "#E4A0A0",
     "scroll": "#53615B",
 }
 
@@ -104,12 +124,13 @@ def build_main_stylesheet(config: UserConfig) -> str:
         "small": max(10, base - 2),
         "tiny": max(9, base - 3),
         "app_name": min(28, base + 7),
-        "greeting": min(36, base + 13),
-        "card_title": min(22, base + 3),
+        "greeting": min(35, base + 12),
+        "card_title": min(21, base + 3),
         "nav_bg": nav_bg,
         "nav_fg": nav_fg,
         "nav_hover": _variant(nav_bg, 108),
         "nav_pressed": _variant(nav_bg, 116),
+        "nav_border": _variant(nav_bg, 112),
     }
 
     return """
@@ -122,7 +143,7 @@ def build_main_stylesheet(config: UserConfig) -> str:
         QFrame#headerCard {
             background-color: %(surface)s;
             border: 1px solid %(border)s;
-            border-radius: 18px;
+            border-radius: 20px;
         }
 
         QLabel#appName {
@@ -133,21 +154,21 @@ def build_main_stylesheet(config: UserConfig) -> str:
 
         QLabel#appSubtitle {
             color: %(muted)s;
-            font-size: %(small)dpx;
+            font-size: %(tiny)dpx;
         }
 
         QFrame#navigationBar {
             background-color: %(nav_bg)s;
-            border: 1px solid %(nav_bg)s;
-            border-radius: 12px;
+            border: 1px solid %(nav_border)s;
+            border-radius: 13px;
         }
 
         QToolButton#menuButton {
             background-color: transparent;
             color: %(nav_fg)s;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 13px;
+            border: 1px solid transparent;
+            border-radius: 9px;
+            padding: 8px 14px;
             font-size: %(small)dpx;
             font-weight: 600;
         }
@@ -160,21 +181,46 @@ def build_main_stylesheet(config: UserConfig) -> str:
             background-color: %(nav_pressed)s;
         }
 
+        QToolButton#menuButton:focus {
+            border: 1px solid %(nav_fg)s;
+        }
+
         QLabel#statusBadge {
-            background-color: transparent;
-            color: %(status)s;
-            border: none;
-            padding: 7px 5px;
+            background-color: %(status_bg)s;
+            color: %(status_text)s;
+            border: 1px solid %(border)s;
+            border-radius: 12px;
+            padding: 7px 10px;
             font-size: %(tiny)dpx;
             font-weight: 600;
+        }
+
+        QLabel#statusBadge[state="info"] {
+            background-color: %(info_bg)s;
+            color: %(info_text)s;
+        }
+
+        QLabel#statusBadge[state="recovered"] {
+            background-color: %(recovered_bg)s;
+            color: %(recovered_text)s;
+        }
+
+        QLabel#statusBadge[state="warning"] {
+            background-color: %(warning_bg)s;
+            color: %(warning_text)s;
+        }
+
+        QLabel#statusBadge[state="error"] {
+            background-color: %(danger_bg)s;
+            color: %(danger_text)s;
         }
 
         QPushButton#settingsMenuButton,
         QPushButton#primaryButton {
             background-color: %(accent)s;
             color: %(button_text)s;
-            border: none;
-            border-radius: 10px;
+            border: 1px solid %(accent)s;
+            border-radius: 11px;
             padding: 10px 16px;
             font-size: %(small)dpx;
             font-weight: 600;
@@ -183,24 +229,31 @@ def build_main_stylesheet(config: UserConfig) -> str:
         QPushButton#settingsMenuButton:hover,
         QPushButton#primaryButton:hover {
             background-color: %(accent_hover)s;
+            border-color: %(accent_hover)s;
         }
 
         QPushButton#settingsMenuButton:pressed,
         QPushButton#primaryButton:pressed {
             background-color: %(accent_pressed)s;
+            border-color: %(accent_pressed)s;
+        }
+
+        QPushButton#settingsMenuButton:focus,
+        QPushButton#primaryButton:focus {
+            border: 1px solid %(soft_text)s;
         }
 
         QFrame#profileCard {
             background-color: %(surface)s;
             border: 1px solid %(border)s;
-            border-radius: 24px;
+            border-radius: 26px;
         }
 
         QLabel#avatar {
             background-color: %(soft_accent)s;
             color: %(soft_text)s;
-            border: 1px solid %(border)s;
-            border-radius: 46px;
+            border: 3px solid %(accent)s;
+            border-radius: 52px;
             font-size: %(card_title)dpx;
             font-weight: 700;
         }
@@ -222,9 +275,13 @@ def build_main_stylesheet(config: UserConfig) -> str:
             font-size: %(small)dpx;
         }
 
-        QLabel#preferences {
-            color: %(accent)s;
-            font-size: %(small)dpx;
+        QLabel#preferenceChip {
+            background-color: %(surface_alt)s;
+            color: %(text)s;
+            border: 1px solid %(border)s;
+            border-radius: 10px;
+            padding: 6px 10px;
+            font-size: %(tiny)dpx;
             font-weight: 600;
         }
 
@@ -232,7 +289,7 @@ def build_main_stylesheet(config: UserConfig) -> str:
             background-color: %(surface_alt)s;
             color: %(text)s;
             border: 1px solid %(border)s;
-            border-radius: 10px;
+            border-radius: 11px;
             padding: 10px 16px;
             font-size: %(small)dpx;
             font-weight: 600;
@@ -240,6 +297,15 @@ def build_main_stylesheet(config: UserConfig) -> str:
 
         QPushButton#secondaryButton:hover {
             background-color: %(soft_accent)s;
+            border-color: %(border_strong)s;
+        }
+
+        QPushButton#secondaryButton:pressed {
+            background-color: %(surface_alt)s;
+        }
+
+        QPushButton#secondaryButton:focus {
+            border: 1px solid %(accent)s;
         }
 
         QFrame#infoCard {
@@ -248,9 +314,16 @@ def build_main_stylesheet(config: UserConfig) -> str:
             border-radius: 18px;
         }
 
+        QFrame#infoCard:hover {
+            border-color: %(border_strong)s;
+        }
+
         QLabel#cardNumber {
-            color: %(accent)s;
-            font-size: %(small)dpx;
+            background-color: %(soft_accent)s;
+            color: %(soft_text)s;
+            border: 1px solid %(border)s;
+            border-radius: 17px;
+            font-size: %(tiny)dpx;
             font-weight: 700;
         }
 
@@ -269,6 +342,7 @@ def build_main_stylesheet(config: UserConfig) -> str:
             background-color: %(surface)s;
             color: %(text)s;
             border: 1px solid %(border)s;
+            border-radius: 10px;
             padding: 5px;
             font-size: %(small)dpx;
         }
@@ -289,6 +363,13 @@ def build_main_stylesheet(config: UserConfig) -> str:
             height: 1px;
             background-color: %(border)s;
             margin: 5px 7px;
+        }
+
+        QToolTip {
+            background-color: %(surface)s;
+            color: %(text)s;
+            border: 1px solid %(border)s;
+            padding: 6px 8px;
         }
     """ % values
 
@@ -345,7 +426,7 @@ def build_settings_stylesheet(
         QFrame#settingsCard {
             background-color: %(surface)s;
             border: 1px solid %(border)s;
-            border-radius: 16px;
+            border-radius: 18px;
         }
 
         QLabel#sectionTitle {
@@ -370,6 +451,12 @@ def build_settings_stylesheet(
             padding: 9px 11px;
             min-height: 22px;
             font-size: %(small)dpx;
+        }
+
+        QLineEdit:hover,
+        QComboBox:hover,
+        QSpinBox:hover {
+            border-color: %(border_strong)s;
         }
 
         QLineEdit:focus,
@@ -410,6 +497,13 @@ def build_settings_stylesheet(
         QPushButton#secondaryButton:hover,
         QPushButton#colorButton:hover {
             background-color: %(soft_accent)s;
+            border-color: %(border_strong)s;
+        }
+
+        QPushButton#compactButton:focus,
+        QPushButton#secondaryButton:focus,
+        QPushButton#colorButton:focus {
+            border: 1px solid %(accent)s;
         }
 
         QPushButton#colorButton {
@@ -419,7 +513,7 @@ def build_settings_stylesheet(
         QPushButton#primaryButton {
             background-color: %(accent)s;
             color: %(button_text)s;
-            border: none;
+            border: 1px solid %(accent)s;
             border-radius: 10px;
             padding: 11px 18px;
             font-weight: 600;
@@ -427,12 +521,18 @@ def build_settings_stylesheet(
 
         QPushButton#primaryButton:hover {
             background-color: %(accent_hover)s;
+            border-color: %(accent_hover)s;
+        }
+
+        QPushButton#primaryButton:pressed {
+            background-color: %(accent_pressed)s;
+            border-color: %(accent_pressed)s;
         }
 
         QPushButton#ghostButton {
             background-color: transparent;
             color: %(muted)s;
-            border: none;
+            border: 1px solid transparent;
             border-radius: 9px;
             padding: 10px 14px;
             font-weight: 600;
@@ -440,6 +540,7 @@ def build_settings_stylesheet(
 
         QPushButton#ghostButton:hover {
             background-color: %(surface_alt)s;
+            color: %(text)s;
         }
 
         QScrollBar:vertical {
@@ -456,6 +557,13 @@ def build_settings_stylesheet(
         QScrollBar::add-line:vertical,
         QScrollBar::sub-line:vertical {
             height: 0;
+        }
+
+        QToolTip {
+            background-color: %(surface)s;
+            color: %(text)s;
+            border: 1px solid %(border)s;
+            padding: 6px 8px;
         }
     """ % values
 
@@ -484,16 +592,16 @@ def build_message_stylesheet(
         }
 
         QLabel#warningIcon {
-            background-color: #5A4720;
-            color: #F4D488;
+            background-color: %(warning_bg)s;
+            color: %(warning_text)s;
             border-radius: 20px;
             font-size: 22px;
             font-weight: 700;
         }
 
         QLabel#errorIcon {
-            background-color: #512A2A;
-            color: #F0A0A0;
+            background-color: %(danger_bg)s;
+            color: %(danger_text)s;
             border-radius: 20px;
             font-size: 22px;
             font-weight: 700;
@@ -502,11 +610,16 @@ def build_message_stylesheet(
         QPushButton#messageButton {
             background-color: %(accent)s;
             color: %(button_text)s;
-            border: none;
+            border: 1px solid %(accent)s;
             border-radius: 9px;
             padding: 9px 20px;
             min-width: 80px;
             font-weight: 600;
+        }
+
+        QPushButton#messageButton:hover {
+            background-color: %(accent_hover)s;
+            border-color: %(accent_hover)s;
         }
     """ % p
 
@@ -543,9 +656,14 @@ def build_color_dialog_stylesheet(
             padding: 8px 14px;
         }
 
+        QColorDialog QPushButton:hover {
+            background-color: %(soft_accent)s;
+            border-color: %(border_strong)s;
+        }
+
         QColorDialog QPushButton:default {
             background-color: %(accent)s;
             color: %(button_text)s;
-            border: none;
+            border: 1px solid %(accent)s;
         }
     """ % p
